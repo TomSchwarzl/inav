@@ -43,17 +43,21 @@
 #include "drivers/io.h"
 #include "drivers/logging.h"
 #include "drivers/time.h"
-#include "sensors/gyro.h"
-#include "drivers/opflow.h"
-#include "drivers/opflow_fake.h"
+
+#include "drivers/opflow/opflow.h"
+#include "drivers/opflow/opflow_fake.h"
+#include "drivers/opflow/opflow_virtual.h"
 
 #include "fc/config.h"
 #include "fc/runtime_config.h"
 
+#include "sensors/gyro.h"
 #include "sensors/sensors.h"
 #include "sensors/opflow.h"
 
 #include "scheduler/scheduler.h"
+
+#include "io/opflow.h"
 
 #include "build/debug.h"
 
@@ -81,6 +85,14 @@ static bool opflowDetect(opflowDev_t * dev, uint8_t opflowHardwareToUse)
 #if defined(USE_OPFLOW_FAKE)
             if (fakeOpflowDetect(dev)) {   // FIXME: Do actual detection if HC-SR04 is plugged in
                 opflowHardware = OPFLOW_FAKE;
+            }
+#endif
+            break;
+
+        case OPFLOW_CXOF:
+#if defined(USE_OPFLOW_CXOF)
+            if (virtualOpflowDetect(dev, &opflowCxofVtable)) {   // FIXME: Do actual detection if HC-SR04 is plugged in
+                opflowHardware = OPFLOW_CXOF;
             }
 #endif
             break;
@@ -115,7 +127,11 @@ bool opflowInit(void)
         return false;
     }
 
-    opflow.dev.initFn(&opflow.dev);
+    if (!opflow.dev.initFn(&opflow.dev)) {
+        sensorsClear(SENSOR_OPFLOW);
+        return false;
+    }
+
     opflowZeroBodyGyroAcc();
 
     return true;
@@ -156,6 +172,12 @@ void opflowUpdate(timeUs_t currentTimeUs)
 
             opflow.bodyRate[X] = DEGREES_TO_RADIANS(opflow.gyroBodyRateAcc[X] / opflow.gyroBodyRateTimeUs);
             opflow.bodyRate[Y] = DEGREES_TO_RADIANS(opflow.gyroBodyRateAcc[Y] / opflow.gyroBodyRateTimeUs);
+            
+            debug[0] = RADIANS_TO_DEGREES(opflow.flowRate[X]);
+            debug[1] = RADIANS_TO_DEGREES(opflow.flowRate[Y]);
+
+            debug[2] = RADIANS_TO_DEGREES(opflow.bodyRate[X]);
+            debug[3] = RADIANS_TO_DEGREES(opflow.bodyRate[Y]);
         }
         else {
             // Opflow updated but invalid - zero out flow rates and body 
