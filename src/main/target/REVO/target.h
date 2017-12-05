@@ -65,7 +65,6 @@
 //#define PITOT_I2C_BUS           BUS_I2C2
 
 #define USE_OPTICAL_FLOW
-// #define USE_OPFLOW_FAKE
 #define USE_OPFLOW_CXOF
 
 #define USE_RANGEFINDER
