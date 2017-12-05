@@ -149,6 +149,7 @@ void opflowUpdate(timeUs_t currentTimeUs)
         // Indicate valid update
         opflow.lastValidUpdate = currentTimeUs;
         opflow.isHwHealty = true;
+        opflow.rawQuality = opflow.dev.rawData.quality;
 
         // Handle state switching
         switch (opflow.flowQuality) {
@@ -172,12 +173,11 @@ void opflowUpdate(timeUs_t currentTimeUs)
 
             opflow.bodyRate[X] = DEGREES_TO_RADIANS(opflow.gyroBodyRateAcc[X] / opflow.gyroBodyRateTimeUs);
             opflow.bodyRate[Y] = DEGREES_TO_RADIANS(opflow.gyroBodyRateAcc[Y] / opflow.gyroBodyRateTimeUs);
-            
-            debug[0] = RADIANS_TO_DEGREES(opflow.flowRate[X]);
-            debug[1] = RADIANS_TO_DEGREES(opflow.flowRate[Y]);
 
-            debug[2] = RADIANS_TO_DEGREES(opflow.bodyRate[X]);
-            debug[3] = RADIANS_TO_DEGREES(opflow.bodyRate[Y]);
+            DEBUG_SET(DEBUG_FLOW_RAW, 0, RADIANS_TO_DEGREES(opflow.flowRate[X]));
+            DEBUG_SET(DEBUG_FLOW_RAW, 1, RADIANS_TO_DEGREES(opflow.flowRate[Y]));
+            DEBUG_SET(DEBUG_FLOW_RAW, 2, RADIANS_TO_DEGREES(opflow.bodyRate[X]));
+            DEBUG_SET(DEBUG_FLOW_RAW, 3, RADIANS_TO_DEGREES(opflow.bodyRate[Y]));
         }
         else {
             // Opflow updated but invalid - zero out flow rates and body 
@@ -197,6 +197,7 @@ void opflowUpdate(timeUs_t currentTimeUs)
             opflow.isHwHealty = false;
 
             opflow.flowQuality = OPFLOW_QUALITY_INVALID;
+            opflow.rawQuality = 0;
 
             opflow.flowRate[X] = 0;
             opflow.flowRate[Y] = 0;

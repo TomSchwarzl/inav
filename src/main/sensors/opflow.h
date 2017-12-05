@@ -58,6 +58,8 @@ typedef struct opflow_s {
 
     float           gyroBodyRateAcc[2];
     timeUs_t        gyroBodyRateTimeUs;    
+
+    uint8_t         rawQuality;
 } opflow_t;
 
 extern opflow_t opflow;
